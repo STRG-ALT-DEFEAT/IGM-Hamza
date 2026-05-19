@@ -1,0 +1,1511 @@
+const fs = require('fs');
+
+const css = `
+:root {
+  --bg: #0b1014;
+  --bg-2: #11181f;
+  --surface: #161e26;
+  --surface-2: #1d2731;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.14);
+  --text: #f4f0e6;
+  --text-dim: #b9c1c9;
+  --text-soft: #8a929a;
+  --accent: #e8a44a;
+  --accent-2: #f0c674;
+  --accent-deep: #b3741f;
+  --green: #2f7d6b;
+  --green-2: #41a290;
+  --gradient-warm: linear-gradient(135deg, #e8a44a 0%, #d97e2e 60%, #a55510 100%);
+  --gradient-mosque: linear-gradient(135deg, #2f7d6b 0%, #1c4f44 60%, #102e28 100%);
+  --gradient-night: linear-gradient(180deg, #0b1014 0%, #131c25 100%);
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+  --font-ar: 'Amiri', serif;
+  --section-pad-y: 100px;
+  --section-pad-x: 6vw;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --section-pad-y: 60px;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.05rem);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: clamp(2.4rem, 5.4vw, 4.8rem);
+}
+
+h2 {
+  font-size: clamp(2rem, 3.6vw, 3rem);
+  margin-bottom: 24px;
+}
+
+h3 {
+  font-size: clamp(1.35rem, 2vw, 1.6rem);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+img, svg {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  background: none;
+}
+
+/* Background Pattern */
+.bg-pattern {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L60 30L30 60L0 30L30 0z' fill='none' stroke='%23ffffff' stroke-width='1'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* Utilities */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--section-pad-x);
+}
+
+.section {
+  padding: var(--section-pad-y) 0;
+}
+
+.text-gradient {
+  background: var(--gradient-warm);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-green-gradient {
+  background: var(--gradient-mosque);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.btn-primary {
+  background: var(--gradient-warm);
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 999px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(232, 164, 74, 0.2);
+}
+
+.btn-ghost {
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  padding: 14px 28px;
+  border-radius: 999px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 0.3s ease, background 0.3s ease;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.btn-ghost:hover {
+  border-color: var(--accent);
+  background: rgba(232, 164, 74, 0.05);
+}
+
+.card {
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 32px;
+  border: 1px solid var(--line);
+  transition: transform 0.4s ease, border-color 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--gradient-warm);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  border-color: var(--accent-deep);
+}
+
+.card:hover::before {
+  transform: scaleX(1);
+}
+
+/* Animations */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(232, 164, 74, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(232, 164, 74, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(232, 164, 74, 0); }
+}
+
+@keyframes spin-slow {
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes spin-slow-reverse {
+  100% { transform: rotate(-360deg); }
+}
+
+/* Header & Nav */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  transition: background 0.3s ease, box-shadow 0.3s ease, padding 0.3s ease;
+  padding: 24px 0;
+}
+
+.header.scrolled {
+  background: rgba(11, 16, 20, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 16px 0;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  border-bottom: 1px solid var(--line);
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.desktop-nav {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+.desktop-nav a {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.desktop-nav a:hover {
+  color: var(--accent);
+}
+
+.burger-btn {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 10px;
+  z-index: 101;
+}
+
+.burger-line {
+  width: 24px;
+  height: 2px;
+  background: var(--text);
+  transition: 0.3s ease;
+}
+
+@media (max-width: 980px) {
+  .desktop-nav { display: none; }
+  .burger-btn { display: flex; }
+}
+
+/* Mobile Menu */
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: var(--bg);
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.mobile-menu.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.mobile-menu a {
+  font-size: 1.5rem;
+  font-family: var(--font-heading);
+  color: var(--text);
+}
+
+.mobile-menu a:hover {
+  color: var(--accent);
+}
+
+/* Hero Section */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-top: 80px;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+  animation: pulse-dot 2s infinite;
+}
+
+.hero-subtitle {
+  font-size: 1.15rem;
+  color: var(--text-dim);
+  margin-bottom: 40px;
+  max-width: 500px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.hero-visual {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mosque-rings {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px dashed rgba(232, 164, 74, 0.2);
+  border-radius: 50%;
+}
+
+.ring-1 { width: 60%; height: 60%; animation: spin-slow 40s linear infinite; }
+.ring-2 { width: 80%; height: 80%; border-style: solid; border-color: rgba(255,255,255,0.05); animation: spin-slow-reverse 60s linear infinite; }
+.ring-3 { width: 100%; height: 100%; animation: spin-slow 80s linear infinite; }
+
+.mosque-svg-container {
+  position: relative;
+  z-index: 2;
+  width: 50%;
+  filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
+}
+
+@media (max-width: 980px) {
+  .hero-grid { grid-template-columns: 1fr; text-align: center; gap: 40px; }
+  .hero-eyebrow { justify-content: center; }
+  .hero-subtitle { margin: 0 auto 40px; }
+  .hero-actions { justify-content: center; }
+  .hero-visual { max-width: 400px; margin: 0 auto; }
+}
+
+/* Stats Bar */
+.stats-bar {
+  background: rgba(22, 30, 38, 0.6);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 40px 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  text-align: center;
+}
+
+.stat-val {
+  font-family: var(--font-heading);
+  font-size: 3rem;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 760px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 40px; }
+}
+
+/* Notice Banner */
+.notice-banner {
+  background: rgba(179, 116, 31, 0.1);
+  border: 1px solid rgba(232, 164, 74, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 24px;
+  margin: var(--section-pad-y) var(--section-pad-x);
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  max-width: 1280px;
+}
+
+@media(min-width: 1400px){
+  .notice-banner { margin: var(--section-pad-y) auto; }
+}
+
+.notice-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.notice-content h4 {
+  color: var(--accent);
+  margin-bottom: 8px;
+  font-family: var(--font-body);
+}
+
+.notice-content p {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+}
+
+/* Timeline */
+.timeline {
+  position: relative;
+  max-width: 800px;
+  margin: 60px auto 0;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20px;
+  height: 100%;
+  width: 2px;
+  background: var(--line-strong);
+}
+
+.tl-item {
+  position: relative;
+  padding-left: 60px;
+  margin-bottom: 48px;
+}
+
+.tl-item:last-child { margin-bottom: 0; }
+
+.tl-dot {
+  position: absolute;
+  left: 14px;
+  top: 6px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--accent);
+}
+
+.tl-date {
+  font-family: var(--font-heading);
+  color: var(--accent);
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+}
+
+.tl-content {
+  color: var(--text-dim);
+}
+
+/* Grid Layouts */
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+
+@media (max-width: 980px) {
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .grid-3 { grid-template-columns: 1fr; }
+}
+
+.icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: rgba(232, 164, 74, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  margin-bottom: 24px;
+}
+
+/* Prayer Times */
+.prayer-times {
+  background: var(--bg-2);
+  position: relative;
+}
+
+.prayer-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-top: 48px;
+}
+
+@media (max-width: 980px) {
+  .prayer-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 600px) {
+  .prayer-grid { grid-template-columns: 1fr; }
+}
+
+.prayer-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 24px;
+  text-align: center;
+  transition: transform 0.3s ease;
+  position: relative;
+}
+
+.prayer-card.next {
+  transform: scale(1.04);
+  background: var(--gradient-mosque);
+  border-color: var(--green);
+}
+
+.next-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--green);
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.prayer-name { font-weight: 600; font-size: 1.1rem; }
+.prayer-ar { font-family: var(--font-ar); font-size: 1.5rem; color: var(--text-dim); margin: 8px 0; }
+.prayer-time { font-family: var(--font-heading); font-size: 2rem; color: var(--accent); }
+.prayer-card.next .prayer-time { color: #fff; }
+.prayer-card.next .prayer-ar, .prayer-card.next .prayer-name { color: rgba(255,255,255,0.9); }
+
+.prayer-note {
+  text-align: center;
+  margin-top: 40px;
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Quote */
+.quote-section {
+  text-align: center;
+  padding: 80px 0;
+  position: relative;
+}
+
+.quote-ar {
+  font-family: var(--font-ar);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  color: var(--accent);
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+.quote-de {
+  font-family: var(--font-heading);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin-bottom: 24px;
+}
+
+.quote-src {
+  color: var(--text-soft);
+  font-size: 0.95rem;
+}
+
+/* Programs */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 48px;
+}
+@media (max-width: 980px) {
+  .grid-2 { grid-template-columns: 1fr; }
+}
+
+.chip-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+/* Donate CTA */
+.donate-cta {
+  background: var(--gradient-warm);
+  border-radius: var(--radius-card);
+  padding: 64px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.donate-cta::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0L40 20L20 40L0 20L20 0z' fill='none' stroke='%23ffffff' stroke-width='1' stroke-opacity='0.1'/%3E%3C/svg%3E");
+  z-index: 1;
+}
+
+.donate-content, .donate-box {
+  position: relative;
+  z-index: 2;
+}
+
+.donate-content h2 { color: #fff; }
+.donate-content p { color: rgba(255,255,255,0.9); font-size: 1.1rem; margin: 16px 0 32px; }
+.donate-kicker { font-weight: 600; color: #fff; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; opacity: 0.9; }
+
+.donate-box {
+  background: var(--bg);
+  padding: 40px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.bank-row {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding: 12px 0;
+}
+.bank-row:last-child { border: none; }
+.b-label { color: var(--text-dim); font-size: 0.9rem; }
+.b-val { font-family: var(--font-mono, monospace); color: var(--text); }
+
+.donate-btns {
+  display: flex;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.btn-paypal {
+  background: #ffc439;
+  color: #000;
+  padding: 14px 28px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-align: center;
+  flex: 1;
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+.btn-paypal:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 980px) {
+  .donate-cta { grid-template-columns: 1fr; padding: 40px 24px; gap: 40px; }
+  .donate-btns { flex-direction: column; }
+}
+
+/* Contact */
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+@media (max-width: 980px) { .contact-grid { grid-template-columns: 1fr; } }
+
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 8px; color: var(--text-dim); font-size: 0.9rem; }
+.form-group input, .form-group textarea {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: var(--text);
+  font-family: var(--font-body);
+  transition: border-color 0.3s ease;
+}
+.form-group input:focus, .form-group textarea:focus {
+  outline: none; border-color: var(--accent);
+}
+
+.map-container {
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  height: 100%;
+  min-height: 400px;
+}
+
+/* Footer */
+footer {
+  background: var(--bg-2);
+  border-top: 1px solid var(--line);
+  padding: 80px 0 40px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 60px;
+}
+
+@media (max-width: 980px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .footer-grid { grid-template-columns: 1fr; }
+}
+
+.f-title { font-weight: 600; margin-bottom: 24px; color: var(--text); }
+.f-links { list-style: none; }
+.f-links li { margin-bottom: 12px; }
+.f-links a { color: var(--text-dim); font-size: 0.95rem; }
+.f-links a:hover { color: var(--accent); }
+
+.f-logo { font-family: var(--font-heading); font-size: 1.5rem; color: var(--accent); margin-bottom: 16px; }
+.f-desc { color: var(--text-dim); font-size: 0.95rem; margin-bottom: 24px; max-width: 300px; }
+
+.social-icons { display: flex; gap: 16px; }
+.social-icons a {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text); border: 1px solid var(--line);
+  transition: all 0.3s ease;
+}
+.social-icons a:hover {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--line);
+  padding-top: 32px;
+  display: flex; justify-content: space-between; align-items: center;
+  color: var(--text-soft); font-size: 0.85rem;
+}
+@media (max-width: 600px) {
+  .footer-bottom { flex-direction: column; text-align: center; gap: 16px; }
+}
+
+#btt-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: all 0.3s ease;
+  z-index: 90;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+#btt-btn.visible { opacity: 1; pointer-events: all; }
+#btt-btn:hover { transform: translateY(-3px); }
+`;
+
+const htmlContent = `<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hamza Moschee | Islamische Gemeinde Mülheim e.V.</title>
+  <meta name="description" content="Islamische Gemeinde Mülheim e.V. — Hamza Moschee. Glaube. Gemeinschaft. Heimat. Mehr als 20 Nationalitäten.">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  
+  <style>
+    ${css}
+  </style>
+</head>
+<body>
+  <div class="bg-pattern" aria-hidden="true"></div>
+
+  <!-- HEADER -->
+  <header class="header" id="header">
+    <div class="container nav-container">
+      <a href="#" class="logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+        Hamza Moschee
+      </a>
+      
+      <nav class="desktop-nav">
+        <a href="#about">Über uns</a>
+        <a href="#philosophy">Philosophie</a>
+        <a href="#prayers">Gebetszeiten</a>
+        <a href="#activities">Aktivitäten</a>
+        <a href="#programs">Programme</a>
+        <a href="#contact">Kontakt</a>
+        <a href="#donate" class="btn-primary" style="padding: 10px 20px; min-height: 38px;">Spenden</a>
+      </nav>
+
+      <button class="burger-btn" id="burger-btn" aria-label="Menü öffnen">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="#about" class="menu-link">Über uns</a>
+    <a href="#philosophy" class="menu-link">Philosophie</a>
+    <a href="#prayers" class="menu-link">Gebetszeiten</a>
+    <a href="#activities" class="menu-link">Aktivitäten</a>
+    <a href="#programs" class="menu-link">Programme</a>
+    <a href="#contact" class="menu-link">Kontakt</a>
+    <a href="#donate" class="btn-primary" style="margin-top: 24px;">Spenden</a>
+  </div>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero container" id="home">
+      <div class="hero-grid">
+        <div class="hero-content reveal">
+          <div class="hero-eyebrow">
+            <span class="pulse-dot"></span>
+            Seit den 1970er Jahren · Mülheim an der Ruhr
+          </div>
+          <h1>Glaube. Gemeinschaft. <br><span class="text-gradient">Heimat.</span></h1>
+          <p class="hero-subtitle" style="margin-top: 24px;">
+            Willkommen bei der Islamischen Gemeinde Mülheim e.V. Mehr als 20 Nationalitäten kommen in der Hamza Moschee zusammen, um den Glauben zu leben, voneinander zu lernen und gemeinsam Verantwortung zu tragen.
+          </p>
+          <div class="hero-actions">
+            <a href="#about" class="btn-primary">
+              Mehr erfahren
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </a>
+            <a href="#prayers" class="btn-ghost">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Gebetszeiten
+            </a>
+          </div>
+        </div>
+        <div class="hero-visual reveal bg-visual" style="transition-delay: 0.2s;">
+          <div class="mosque-rings" aria-hidden="true">
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
+            <div class="ring ring-3"></div>
+          </div>
+          <div class="mosque-svg-container">
+            <!-- Simulated hand-drawn mosque SVG -->
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="gold-grad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#e8a44a" />
+                  <stop offset="100%" stop-color="#b3741f" />
+                </linearGradient>
+              </defs>
+              <path d="M50 20 C65 20, 75 35, 75 50 L75 80 L25 80 L25 50 C25 35, 35 20, 50 20 Z" stroke="url(#gold-grad)" stroke-width="2" stroke-linecap="round" />
+              <path d="M50 5 L50 20 M45 10 L50 5 L55 10" stroke="url(#gold-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M20 80 L20 40 M15 45 L20 40 L25 45" stroke="url(#gold-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M80 80 L80 40 M75 45 L80 40 L85 45" stroke="url(#gold-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="50" cy="50" r="8" stroke="url(#gold-grad)" stroke-width="2"/>
+              <path d="M35 80 L35 65 A 15 15 0 0 1 65 65 L65 80" stroke="url(#gold-grad)" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="stats-bar">
+      <div class="container stats-grid">
+        <div class="stat-item reveal">
+          <div class="stat-val" data-target="20">0</div>
+          <div class="stat-label">Nationalitäten</div>
+        </div>
+        <div class="stat-item reveal" style="transition-delay: 0.1s;">
+          <div class="stat-val" data-target="50">0</div>
+          <div class="stat-label">Jahre Gemeinde</div>
+        </div>
+        <div class="stat-item reveal" style="transition-delay: 0.2s;">
+          <div class="stat-val"><span data-target="500">0</span> m²</div>
+          <div class="stat-label">Räumlichkeiten</div>
+        </div>
+        <div class="stat-item reveal" style="transition-delay: 0.3s;">
+          <div class="stat-val" data-target="5">0</div>
+          <div class="stat-label">Tägliche Gebete</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOTICE -->
+    <div class="notice-banner reveal">
+      <div class="notice-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      </div>
+      <div class="notice-content">
+        <h4>Wichtiger Hinweis — Brandschutzordnung</h4>
+        <p>Sobald die zulässige Besucherzahl erreicht ist (beim Freitagsgebet erfahrungsgemäß gegen 14:20 Uhr), werden die Türen der Moschee geschlossen. Bitte rechtzeitig erscheinen — auch bei anderen Gebeten und Veranstaltungen mit großem Andrang.</p>
+      </div>
+    </div>
+
+    <!-- ABOUT -->
+    <section class="section container" id="about">
+      <div class="reveal">
+        <h2>Unsere Geschichte</h2>
+        <p style="color: var(--text-dim); max-width: 600px;">Verwurzelt in Mülheim, offen für die Welt. Ein kurzer Blick auf unseren Weg.</p>
+      </div>
+      
+      <div class="timeline reveal" style="transition-delay: 0.2s;">
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">1970er</div>
+          <div class="tl-content">
+            <strong>Gründung der Gemeinde</strong><br>
+            Die Islamische Gemeinde Mülheim e.V. wird als wohltätige und gemeinnützige Organisation gegründet und trägt den Namen Hamza (Onkel des Propheten Muhammad ﷺ). Mitglied im Zentralrat der Muslime in Deutschland.
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">bis 2005</div>
+          <div class="tl-content">
+            <strong>Standort am Klöttschen</strong><br>
+            Bis Mitte 2005 befindet sich die Gemeinde am Klöttschen. Im Zuge städtischer Neugestaltungsmaßnahmen wird ein Umzug erforderlich.
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">Sep 2005</div>
+          <div class="tl-content">
+            <strong>Neue Heimat: Friedrichstraße 50</strong><br>
+            Dank der Unterstützung der Stadt Mülheim und der engagierten Mitglieder bezieht die Gemeinde ihr neues Gebäude. Eingetragen beim Amtsgericht Duisburg unter VR51186.
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">Heute</div>
+          <div class="tl-content">
+            <strong>Lebendige, vielfältige Gemeinschaft</strong><br>
+            Über 300 m² Gebetsraum für Männer, separater Frauenraum von über 200 m², Bibliothek und Schulungsräume — ein Zuhause für mehr als 20 Nationalitäten.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PHILOSOPHY -->
+    <section class="section container" id="philosophy">
+      <div class="reveal text-center">
+        <h2>Unsere Philosophie</h2>
+        <p style="color: var(--text-dim); text-align:center; max-width: 600px; margin: 0 auto;">Unsere Werte prägen unser Handeln — in der Moschee und in der Gesellschaft.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card reveal">
+          <div class="icon-wrapper">
+             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          </div>
+          <h3>Wissen</h3>
+          <p style="color:var(--text-dim); margin-top:12px; font-size:0.95rem;">Wissen ist der Schlüssel — religiöses, spirituelles und weltliches. Wir fördern Bildung durch Kurse, Vorträge und Bildungsprogramme auf allen Ebenen.</p>
+        </div>
+        <div class="card reveal" style="transition-delay: 0.1s;">
+          <div class="icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          </div>
+          <h3>Spiritualität</h3>
+          <p style="color:var(--text-dim); margin-top:12px; font-size:0.95rem;">Durch Gebet, Qur'an-Rezitation und Dhikr finden wir Ruhe und Nähe zu Allah (swt). Unsere Moschee ist ein Ort der Einkehr und Inspiration.</p>
+        </div>
+        <div class="card reveal" style="transition-delay: 0.2s;">
+          <div class="icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <h3>Gemeinschaft</h3>
+          <p style="color:var(--text-dim); margin-top:12px; font-size:0.95rem;">Menschen aus mehr als 20 Nationalitäten kommen zusammen. Jeder ist willkommen — unabhängig von Alter, Herkunft oder Lebenssituation.</p>
+        </div>
+        <div class="card reveal">
+          <div class="icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          </div>
+          <h3>Hilfsbereitschaft</h3>
+          <p style="color:var(--text-dim); margin-top:12px; font-size:0.95rem;">Spenden, ehrenamtliches Engagement und soziale Projekte. Jede gute Tat — so klein sie scheinen mag — hat eine große Wirkung.</p>
+        </div>
+        <div class="card reveal" style="transition-delay: 0.1s;">
+          <div class="icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          </div>
+          <h3>Respekt & Offenheit</h3>
+          <p style="color:var(--text-dim); margin-top:12px; font-size:0.95rem;">Der respektvolle Umgang mit anderen Kulturen und Religionen ist uns wichtig. Wir bauen Brücken und fördern interkulturelles Verständnis.</p>
+        </div>
+        <div class="card reveal" style="transition-delay: 0.2s;">
+          <div class="icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+          </div>
+          <h3>Verantwortung</h3>
+          <p style="color:var(--text-dim); margin-top:12px; font-size:0.95rem;">Unsere Gemeinde ist ein Ort des Gebets — und des sozialen und kulturellen Engagements. Wir leben unseren Glauben so, dass er der Gesellschaft dient.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRAYER TIMES -->
+    <section class="section prayer-times" id="prayers">
+      <div class="container reveal">
+        <h2 style="text-align:center;">Gebetszeiten</h2>
+        <div class="prayer-grid" id="prayer-grid">
+          <!-- Filled by JS -->
+        </div>
+        <p class="prayer-note">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Freitagspredigt (Khutba) · Sommer 14:30 Uhr · Winter 12:45 Uhr
+        </p>
+      </div>
+    </section>
+
+    <!-- QUOTE -->
+    <section class="section quote-section container">
+      <div class="reveal">
+        <div class="quote-ar" lang="ar" dir="rtl">„يَا بِلَالُ أَرِحْنَا بِالصَّلَاةِ"</div>
+        <div class="quote-de">„O Bilal, rufe zum Gebet, lass uns damit trösten."</div>
+        <div class="quote-src">Der Prophet Muhammad ﷺ · Sahih al-Bukhari</div>
+      </div>
+    </section>
+
+    <!-- ACTIVITIES -->
+    <section class="section container" id="activities">
+      <div class="reveal text-center">
+        <h2>Aktivitäten</h2>
+        <p style="color: var(--text-dim); text-align:center;">Gemeinsam lernen, helfen und wachsen.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card reveal">
+          <h3>Gebete & Qur'an</h3>
+          <p style="color:var(--text-dim); margin-top:8px; font-size:0.95rem;">Tägliche Gebete, Freitagspredigt, Quran-Unterricht freitags & sonntags, Tarawih und Iftar im Ramadan.</p>
+        </div>
+        <div class="card reveal" style="transition-delay: 0.1s;">
+          <h3>Sport & Fußball</h3>
+          <p style="color:var(--text-dim); margin-top:8px; font-size:0.95rem;">Regelmäßige Fußballspiele, gemeinsames Joggen und Fahrradfahren.</p>
+        </div>
+        <div class="card reveal" style="transition-delay: 0.2s;">
+          <h3>Jugendbereich</h3>
+          <p style="color:var(--text-dim); margin-top:8px; font-size:0.95rem;">Jugendtreffs mit Cafeteria, Freizeitaktivitäten, Nachhilfe, Workshops, Studienkreise.</p>
+        </div>
+        <div class="card reveal">
+          <h3>Soziale Hilfe</h3>
+          <p style="color:var(--text-dim); margin-top:8px; font-size:0.95rem;">Lebensmittelspenden, Kleidersammlungen, Behördenhilfe — Kooperation mit Diakonie Mülheim seit 2 Jahren.</p>
+        </div>
+        <div class="card reveal" style="transition-delay: 0.1s;">
+          <h3>Frauenbereich</h3>
+          <p style="color:var(--text-dim); margin-top:8px; font-size:0.95rem;">Islamische Bildung, Vorträge, Workshops, kreative Aktivitäten, monatliches Frühstück, Quran-Lernen sonntags.</p>
+        </div>
+        <div class="card reveal" style="transition-delay: 0.2s;">
+          <h3>Tag der offenen Tür</h3>
+          <p style="color:var(--text-dim); margin-top:8px; font-size:0.95rem;">Gemeindefeste, Iftar-Abende, Workshops und Vorträge zu Erziehung und interkulturellem Austausch.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROGRAMS -->
+    <section class="section container" id="programs">
+      <div class="reveal">
+        <h2>Unsere Programme</h2>
+      </div>
+      <div class="grid-2">
+        <div class="card reveal">
+          <h3 class="text-gradient" style="font-size: 1.8rem;">IGM Jugend</h3>
+          <ul style="color:var(--text-dim); margin-top:16px; padding-left: 20px;">
+            <li>Neu eingerichteter Jugendbereich mit Cafeteria</li>
+            <li>Monatliche deutschsprachige Vorträge</li>
+            <li>Jährliches FIFA-PS-Turnier</li>
+            <li>Quran-Unterricht 2× wöchentlich (freitags + sonntags)</li>
+            <li>Sport & regelmäßige Treffen</li>
+          </ul>
+          <div class="chip-container">
+            <span class="chip">Monatliche Vorträge</span>
+            <span class="chip">FIFA-Turnier</span>
+            <span class="chip">Sport</span>
+            <span class="chip">Quran 2× wöchentlich</span>
+          </div>
+        </div>
+        <div class="card reveal" style="transition-delay: 0.2s;">
+          <h3 class="text-green-gradient" style="font-size: 1.8rem;">Hamza-Schule</h3>
+          <ul style="color:var(--text-dim); margin-top:16px; padding-left: 20px;">
+            <li>Arabisch- und Qur'an-Unterweisung für Kinder ab 6 Jahren</li>
+            <li>Liebevolle, pädagogisch wertvolle Vermittlung</li>
+          </ul>
+          <div class="chip-container" style="margin-top:auto;">
+            <span class="chip">Samstags 09:00 – 14:30 Uhr</span>
+            <span class="chip">Ab 6 Jahren</span>
+            <span class="chip">Friedrichstr. 50A – Hinterhof</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DONATE -->
+    <section class="section container" id="donate">
+      <div class="donate-cta reveal">
+        <div class="donate-content">
+          <span class="donate-kicker">Es vermindert sich kein Vermögen durch Spenden</span>
+          <h2>Unterstützen Sie unsere Gemeinde</h2>
+          <p>Ihre Spende ermöglicht uns, unsere Aktivitäten fortzuführen, unsere Räumlichkeiten zu erhalten und langfristig finanzielle Unabhängigkeit sicherzustellen. Möge Allah (swt) Sie reichlich belohnen.</p>
+          <div class="donate-btns">
+            <a href="http://paypal.me/hamzamoschee" target="_blank" rel="noopener noreferrer" class="btn-paypal">
+              PayPal Spende
+            </a>
+            <a href="#contact" class="btn-ghost" style="border-color: rgba(255,255,255,0.4); color:#fff;">
+              Kontaktieren
+            </a>
+          </div>
+        </div>
+        <div class="donate-box">
+          <div class="bank-row">
+            <span class="b-label">Bank</span>
+            <span class="b-val" style="text-align: right;">Stadt Sparkasse<br>Mülheim a.d. Ruhr</span>
+          </div>
+          <div class="bank-row">
+            <span class="b-label">IBAN</span>
+            <span class="b-val">DE86 3625 0000<br>0175 1646 42</span>
+          </div>
+          <div class="bank-row">
+            <span class="b-label">BIC</span>
+            <span class="b-val">SPMHDE3EXXX</span>
+          </div>
+          <div class="bank-row">
+            <span class="b-label">Konto</span>
+            <span class="b-val">Islamische Gemeinde<br>Mülheim e.V.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="section container" id="contact">
+      <div class="reveal">
+        <h2>Kontakt</h2>
+        <p style="color:var(--text-dim); margin-bottom: 40px;">Wir freuen uns auf Ihre Nachricht oder Ihren Besuch.</p>
+      </div>
+      <div class="contact-grid">
+        <div class="card reveal">
+          <h3 style="margin-bottom: 24px;">Besuchen Sie uns</h3>
+          <p style="color:var(--text-dim); margin-bottom: 24px;">
+            <strong>Friedrichstraße 50</strong><br>
+            45468 Mülheim an der Ruhr
+          </p>
+          <ul style="color:var(--text-dim); list-style:none; margin-bottom:32px;">
+            <li style="margin-bottom: 8px;"><strong>Freitagsgebet:</strong> Sommer 14:30 · Winter 12:45</li>
+            <li><strong>Hamza-Schule:</strong> Samstags 09:00 – 14:30 (Friedrichstr. 50A)</li>
+          </ul>
+          
+          <form onsubmit="event.preventDefault(); alert('Vielen Dank für Ihre Nachricht. (Demo-Formular)');">
+            <div class="form-group">
+              <label for="name">Name</label>
+              <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+              <label for="email">E-Mail</label>
+              <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+              <label for="subject">Betreff</label>
+              <input type="text" id="subject" required>
+            </div>
+            <div class="form-group">
+              <label for="msg">Nachricht</label>
+              <textarea id="msg" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%;">Absenden</button>
+          </form>
+        </div>
+        <div class="reveal map-container" style="transition-delay: 0.2s;">
+          <iframe 
+            width="100%" 
+            height="100%" 
+            frameborder="0" 
+            scrolling="no" 
+            marginheight="0" 
+            marginwidth="0" 
+            src="https://www.openstreetmap.org/export/embed.html?bbox=6.8770,51.4300,6.8850,51.4360&amp;layer=mapnik&amp;marker=51.433,6.881" 
+            style="border: 1px solid var(--line); border-radius: var(--radius-card); background:var(--surface-2);">
+          </iframe>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container footer-grid">
+      <div class="f-col">
+        <div class="f-logo">Hamza Moschee</div>
+        <p class="f-desc">Glaube. Gemeinschaft. Heimat.<br>Seit den 1970er Jahren in Mülheim an der Ruhr.</p>
+        <div class="social-icons">
+          <a href="https://www.facebook.com/Islamische.Gemeinde.Muelheim.e.V" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+          </a>
+          <a href="https://www.instagram.com/hamza_moschee" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+          </a>
+          <a href="https://mawaqit.net/de/w/hamza-moschee?showOnly5PrayerTimes=0" target="_blank" rel="noopener noreferrer" aria-label="Mawaqit">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </a>
+        </div>
+      </div>
+      <div class="f-col">
+        <div class="f-title">Gemeinde</div>
+        <ul class="f-links">
+          <li><a href="#about">Über uns</a></li>
+          <li><a href="#philosophy">Ziele & Werte</a></li>
+          <li><a href="#activities">Aktivitäten</a></li>
+          <li><a href="#programs">Hamza-Schule</a></li>
+        </ul>
+      </div>
+      <div class="f-col">
+        <div class="f-title">Service</div>
+        <ul class="f-links">
+          <li><a href="#prayers">Gebetszeiten</a></li>
+          <li><a href="#donate">Spenden</a></li>
+          <li><a href="#contact">Kontakt</a></li>
+          <li><a href="https://mawaqit.net/de/w/hamza-moschee?showOnly5PrayerTimes=0" target="_blank" rel="noopener noreferrer">Live-Mawaqit</a></li>
+        </ul>
+      </div>
+      <div class="f-col">
+        <div class="f-title">Rechtliches</div>
+        <ul class="f-links">
+          <li><a href="https://ig-muelheim.de/impressum" target="_blank" rel="noopener noreferrer">Impressum</a></li>
+          <li><a href="https://ig-muelheim.de/datenschutz" target="_blank" rel="noopener noreferrer">Datenschutz</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <div>© 2025 Islamische Gemeinde Mülheim e.V. — Alle Rechte vorbehalten.</div>
+      <div>Mitglied im Zentralrat der Muslime in Deutschland</div>
+    </div>
+  </footer>
+
+  <button id="btt-btn" aria-label="Nach oben scrollen">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+  </button>
+
+  <script>
+    // 1. Navbar Scroll Effect
+    const header = document.getElementById('header');
+    const bttBtn = document.getElementById('btt-btn');
+    
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+      
+      if (window.scrollY > 600) {
+        bttBtn.classList.add('visible');
+      } else {
+        bttBtn.classList.remove('visible');
+      }
+    });
+
+    bttBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // 2. Burger Menu
+    const burgerBtn = document.getElementById('burger-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuLinks = document.querySelectorAll('.menu-link');
+
+    burgerBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('open');
+    });
+
+    menuLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.remove('open');
+      });
+    });
+
+    // 3. Scroll Reveal Animation
+    const revealElements = document.querySelectorAll('.reveal');
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.12
+    };
+
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          
+          // Trigger counters if present
+          if (entry.target.classList.contains('stats-item') || entry.target.querySelector('.stat-val')) {
+             const statVals = entry.target.querySelectorAll('.stat-val');
+             statVals.forEach(initCounter);
+          }
+          
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    revealElements.forEach(el => revealObserver.observe(el));
+
+    // 4. Counter Animation
+    const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+    
+    function initCounter(el) {
+      if (el.dataset.animated) return;
+      el.dataset.animated = "true";
+      
+      let targetSpan = el;
+      // If inner span exists, select it
+      if (el.querySelector('span')) targetSpan = el.querySelector('span');
+
+      const target = parseInt(targetSpan.getAttribute('data-target') || targetSpan.innerText);
+      if(isNaN(target)) return;
+
+      let current = 0;
+      const duration = 2000;
+      const start = performance.now();
+
+      function update(currentTime) {
+        const elapsed = currentTime - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = easeOutCubic(progress);
+        
+        current = Math.floor(easeProgress * target);
+        targetSpan.innerText = current + (targetSpan.getAttribute('data-target') ? '+' : '');
+        
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        } else {
+          targetSpan.innerText = target + (targetSpan.getAttribute('data-target') ? '+' : '');
+        }
+      }
+      requestAnimationFrame(update);
+    }
+
+    // Initialize counters that are already in view on load
+    document.querySelectorAll('.stat-val').forEach(el => {
+       const rect = el.getBoundingClientRect();
+       if(rect.top < window.innerHeight) {
+          initCounter(el);
+       }
+    });
+
+    // 5. Prayer Times Logic
+    const prayers = [
+      { id: 'fajr', name: 'Fajr', ar: 'الفجر', time: '03:45' },
+      { id: 'dhuhr', name: 'Dhuhr', ar: 'الظهر', time: '13:25' },
+      { id: 'asr', name: 'Asr', ar: 'العصر', time: '17:45' },
+      { id: 'maghrib', name: 'Maghrib', ar: 'المغرب', time: '21:10' },
+      { id: 'isha', name: 'Isha', ar: 'العشاء', time: '22:45' }
+    ];
+
+    function renderPrayers() {
+      const grid = document.getElementById('prayer-grid');
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+      let nextIndex = -1;
+
+      // Find next prayer
+      for (let i = 0; i < prayers.length; i++) {
+        const [h, m] = prayers[i].time.split(':').map(Number);
+        const prayerMinutes = h * 60 + m;
+        if (prayerMinutes > currentMinutes) {
+          nextIndex = i;
+          break;
+        }
+      }
+      
+      // If none found today, Fajr tomorrow is next
+      if (nextIndex === -1 && prayers.length > 0) nextIndex = 0;
+
+      grid.innerHTML = prayers.map((p, i) => {
+        const isNext = i === nextIndex;
+        return \`
+          <div class="prayer-card \${isNext ? 'next' : ''}">
+            \${isNext ? '<div class="next-badge">Nächstes Gebet</div>' : ''}
+            <div class="prayer-name">\${p.name}</div>
+            <div class="prayer-ar" lang="ar" dir="rtl">\${p.ar}</div>
+            <div class="prayer-time">\${p.time}</div>
+          </div>
+        \`;
+      }).join('');
+    }
+
+    renderPrayers();
+
+  </script>
+</body>
+</html>
+`;
+
+fs.writeFileSync('index.html', htmlContent);
+console.log('Successfully wrote index.html');
